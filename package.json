@@ -9,11 +9,23 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@apollo/client": "^3.14.0",
+    "@apollo/client-integration-nextjs": "^0.14.4",
+    "@nhost/apollo": "^9.0.1",
+    "@nhost/nextjs": "^2.3.1",
+    "@nhost/nhost-js": "^4.2.2",
+    "@nhost/react-apollo": "^18.0.2",
+    "graphql": "^16.12.0",
     "next": "16.1.4",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "shadcn": "^3.7.0"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
