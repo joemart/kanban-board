@@ -1,0 +1,15 @@
+mutation addColor($object: colors_insert_input!) {
+  insert_colors_one(object: $object) {
+    id      # Returns auto-generated id
+    name
+  }
+}
+# mutation UpdateColor($id: ID!, $name: String!){
+#     updateColor(id: $id, name: $name){
+#         id
+#     }
+# }
+
+# mutation DeleteColor($id: ID!){
+#     deleteColor(id: $id)
+# }

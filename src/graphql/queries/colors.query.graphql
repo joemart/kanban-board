@@ -1,0 +1,13 @@
+query GetAllColors {
+    colors {
+        id
+        name
+    }
+}
+
+# query GetColor($id:ID!) {
+#     color(id: $id){
+#         id
+#         name
+#     }
+# }
