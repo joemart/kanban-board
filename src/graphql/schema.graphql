@@ -1,0 +1,22 @@
+# type Color {
+#     id: ID!
+#     name: String!
+# }
+
+# input ColorsInput {
+#     name: String!
+# }
+
+# type Query {
+#     colors: [Color!]!
+#     color(id: ID!): Color
+# }
+
+# type Mutation {
+#     addColor(input: ColorsInput!): Color!
+#     updateColor(id: ID!, name: String!) : Color!
+#     deleteColor(id: ID!): Boolean!
+# }
+
+
+
