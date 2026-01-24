@@ -1,5 +1,5 @@
 {
-    "buildCommand": "pnpm codegen:production && next build",
+    "buildCommand": "pnpm codegen:prod && next build",
     "installCommand": "pnpm install",
     "framework": "nextjs"
 }
