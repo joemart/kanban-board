@@ -25,6 +25,10 @@
     "react-dom": "19.2.3",
     "shadcn": "^3.7.0"
   },
+  "overrides": {
+    "@apollo/client": "^3.14.0",
+    "graphql":"^16.0.0"
+  },
   "devDependencies": {
     "@graphql-codegen/cli": "6.1.1",
     "@graphql-codegen/client-preset": "5.2.2",
