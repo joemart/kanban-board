@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "codegen": "graphql-codegen --config codegen.ts"
+    "codegen": "graphql-codegen --config codegen.ts",
+    "codegen:prod": "graphql-codegen --config codegen.prod.ts",
+    "test": "jest"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
     "@apollo/client-integration-nextjs": "^0.14.4",
+    "@hello-pangea/dnd": "^18.0.1",
     "@nhost/apollo": "^9.0.1",
     "@nhost/nextjs": "^2.3.1",
     "@nhost/nhost-js": "^4.2.2",
@@ -30,13 +33,20 @@
     "@graphql-codegen/typescript-operations": "^5.0.7",
     "@graphql-codegen/typescript-react-apollo": "^4.4.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.1.4",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

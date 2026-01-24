@@ -1,0 +1,5 @@
+{
+    "buildCommand": "npm run codegen:production && next build",
+    "installCommand": "npm install",
+    "framework": "nextjs"
+}
