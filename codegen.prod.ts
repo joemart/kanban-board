@@ -4,14 +4,10 @@ import dotenv from "dotenv"
 dotenv.config({path: ".env.local"});
 
 const config: CodegenConfig = {
-   overwrite: true,
+  overwrite: true,
 
-  schema: "./src/graphql/schema.graphql",
-  documents: ['./src/graphql/**/*.graphql',
-    './src/**/*.{ts,tsx,js,jsx}',
-    '!./src/**/*.test.{ts,tsx,js,jsx}',
-    '!./node_module/**/*'
-  ],
+  schema: process.env.NHOST_GRAPHQL_URL,
+  documents: ['./src/graphql/**/*.graphql'],
   config: {
     ignoreNoFields: true,
   },
