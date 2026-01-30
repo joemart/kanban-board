@@ -1,0 +1,11 @@
+query GetAllBoards {
+    boards{
+        id, name, position, owner
+    }
+}
+
+query GetBoard($id: uuid!){
+    boards_by_pk(id:$id){
+        id, name, position, owner
+    }
+}
