@@ -20,9 +20,12 @@
       }
     ],
     "paths": {
-      "@/app" : ["./src/app/*"],
+      "@/app/*" : ["./src/app/*"],
+      "@/graphql/*": ["./src/graphql/*"],
+      "@/ui/*" : ["./src/app/components/ui/*"],
       "@/components/*" : ["./src/app/components/*"],
-      "@/*": ["./*"]      
+      "@/types/*": ["./src/app/types/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [

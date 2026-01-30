@@ -1,0 +1,6 @@
+mutation addBoard($object: boards_insert_input!) {
+  insert_boards_one(object: $object) {
+    id      # Returns auto-generated id
+    name
+  }
+}

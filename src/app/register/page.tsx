@@ -30,7 +30,8 @@ const Register = () => {
         
         e.preventDefault()
         try{
-            signUpEmailPassword(value.email, value.password)
+            await signUpEmailPassword(value.email, value.password, {allowedRoles: ["user", "me"], defaultRole: "user"})
+
         }catch(e){
             console.log(e)
         }

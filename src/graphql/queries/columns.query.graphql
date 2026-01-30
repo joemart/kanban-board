@@ -1,0 +1,17 @@
+query GetAllColumns{
+    columns {
+        board_id,
+        id,
+        name,
+        position  
+    }
+}
+
+query GetColumn($column: uuid!){
+    columns_by_pk(id: $column){
+        board_id,
+        id,
+        name,
+        position
+    }
+}
