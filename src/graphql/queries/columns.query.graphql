@@ -7,8 +7,8 @@ query GetAllColumns{
     }
 }
 
-query GetColumn($column: uuid!){
-    columns_by_pk(id: $column){
+query GetColumn($id: uuid!){
+    columns_by_pk(id: $id){
         board_id,
         id,
         name,

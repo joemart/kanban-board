@@ -4,27 +4,30 @@ import Sidebar from "@/components/sidebar";
 import Board from "@/components/board";
 import Column from "@/components/board/column";
 import Card from "@/components/board/column/card"
-import {DragDropContext, Draggable, Droppable} from "@hello-pangea/dnd"
+import {DragDropContext, Draggable, Droppable, DropResult} from "@hello-pangea/dnd"
 import { Button } from "./components/ui/button";
 // Board
 import { useBoards, useBoard } from "./queries/boards.graphql";
 import { useEffect, useState } from "react";
-import type { BoardType } from "./types/main.types";
+import { ColumnType, type BoardType } from "./types/main.types";
 import { BoardContext } from "./context/BoardContext";
 import {useColumns} from "@/app/queries/columns.graphql"
+import { useColumnsUpdateOrder } from "./mutations/columns.graphql";
 
 export default function Home() {
 
     const [boardId, setBoardId] = useState("")
-    const {data : columns} = useColumns() 
     const {data : board, refetch} = useBoard(boardId)
+    const {data : columnsData, loading, error} = useColumns() 
+    const {mutate} = useColumnsUpdateOrder()
+
+    const [columns, setColumns] = useState<ColumnType[]>()
+
     useEffect(()=>{
-       console.log(board)
-    },[board])
-    
-    useEffect(()=>{
-        console.log(columns)
-    }, [columns])
+        if(columnsData && columnsData.columns)
+            setColumns(columnsData.columns)
+        
+    }, [columnsData])
 
     // column: add column
     // column: remove column
@@ -32,67 +35,104 @@ export default function Home() {
 
     // column: handle add card
 
+    //board update column order
+    
+
     //board: handle select board
 
     const handleSelectBoard = async (boardId:string)=>{
         
         try{
-            refetch({id: boardId})
+            await refetch({id: boardId})
         }catch(e){
             console.log(e)
         }
     }
 
-    const onDragEnd = () =>{
+    const onDragEnd = (result: DropResult) =>{
+        const {destination, source, draggableId, type} = result
 
+        if(!columns) return
+        if(!destination) return
+        if(destination.droppableId == source.droppableId && destination.index == source.index) return
+
+        if(type=="COLUMN")
+        {   
+                const c = [...columns]
+                const [movedColumn] = c.splice(source.index, 1)
+                c.splice(destination.index, 0, movedColumn)
+                const reordered = c.map((c,i) => ({...c , position : i}))
+
+                setColumns(reordered)
+
+                const updates = reordered.map((item) => ({
+                                where: {
+                                    _and:[
+                                        {id: { _eq: item.id }},
+                                        {board_id: { _eq: item.board_id }} 
+                                    ]
+                                },
+                                _set: { position: item.position }
+                                }));
+                mutate({
+                    variables:{updates},
+                    onError: (e)=>{
+                        console.log(e)
+
+                    },
+                    onCompleted: (data)=>{
+                        setColumns(data.update_columns_many.map((column:{returning:BoardType[]})=> (column.returning.pop())))
+
+                    }
+                })    
+        }
+        
     }
+
+  if (loading) {
+    return <div>Loading columns...</div>;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h3>Error Loading Columns</h3>
+        <p>{error.message}</p>
+        <pre>{JSON.stringify(error, null, 2)}</pre>
+      </div>
+    );
+  }
+
+  if (!columns) {
+    return <div>No columns data returned (null/undefined)</div>;
+  }
 
   return (
     <SidebarProvider className=" h-full min-h-auto flex gap-10" >
-        <BoardContext.Provider value={{handleSelectBoard, boardId}}>
+        <BoardContext.Provider value={{handleSelectBoard, board}}>
         <Sidebar />
             <DragDropContext onDragEnd={onDragEnd}>
-            
 
-                
                 <Board>
                     <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
-                        {(provided)=>(<>
+                        {(provided)=>(
                             <div className="flex gap-2.5" ref={provided.innerRef} {...provided.droppableProps}> 
-                                {/* column map */}
-                                
-                                {/* <Column>
-                                    <Card>
-                                        <div>Cards</div> 
-                                    </Card>
-                                    <Card>
-                                        <div>Cards</div>
-                                    </Card>
-                                    <Card>
-                                        <div>Cards</div> 
-                                    </Card>
-                                    <Card>
-                                        <div>Cards</div>
-                                    </Card>
-                                </Column>
-                                <Column>
-                                <Card>
-                                    <div>Cards</div> 
-                                </Card>
-                                <Card>
-                                    <div>Cards</div>
-                                </Card>
-                                <Card>
-                                    <div>Cards</div> 
-                                </Card>
-                                <Card>
-                                    <div>Cards</div>
-                                </Card>
-                                </Column> */}
+
+                                {loading ? "loading..." : columns.map((x, index)=><Draggable index={index} key={x.id} draggableId={x.id}>
+                                        {(provided)=>{
+                                            return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
+                                                <Column name={x.name}>
+                                                    Card
+                                                    </Column>
+                                            </div>
+                                        }}
+
+                                </Draggable> )}
                                 {provided.placeholder}
+                                <Button>Add column button</Button>
                             </div>
-                            <Button>Add column button</Button>
-                            </>
+                            
+                            
                             )}
                     </Droppable>
                 </Board>

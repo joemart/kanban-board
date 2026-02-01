@@ -16,8 +16,7 @@ import { toast } from "sonner"
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useBoards } from "@/app/queries/boards.graphql"
-import { ApolloError } from "@apollo/client"
-
+import { useColumns } from "@/app/queries/columns.graphql"
 
 const formSchema = z.object({
     name: z.string()
@@ -26,19 +25,11 @@ const formSchema = z.object({
 })
 
 
-type BoardType = {
-    data : {boards: {
-        id: string,
-        name: string,
-        position: number,
-        owner: string
-    }[]},
-    error: ApolloError | undefined,
-    loading: boolean
-}
+
 const Sidebar = () => {
 
-    const {data, loading} : BoardType  = useBoards()
+    const {data, loading}  = useBoards()
+    const {data: columns} = useColumns()
     const boardContext = useContext(BoardContext)
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -51,8 +42,8 @@ const Sidebar = () => {
     }
 
 
-
     if(!boardContext) return;
+    if(!data) return
     const {handleSelectBoard} = boardContext;
     
 

@@ -1,0 +1,11 @@
+mutation UpdateColumnsOrder($updates: [columns_updates!]!){
+    update_columns_many(updates: $updates){
+        affected_rows
+        returning{
+            id
+            board_id
+            name
+            position
+        }
+    }
+}
