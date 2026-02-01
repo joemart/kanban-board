@@ -1,16 +1,9 @@
 import {createContext} from "react"
 import { BoardType } from "../types/main.types";
+import { GetBoardQuery } from "@/graphql/__generated__/graphql";
 
 type BoardContextType = {
     handleSelectBoard(boardId:string):void,
-    boardId : string
+    board : GetBoardQuery | undefined
 }
 export const BoardContext = createContext<BoardContextType | undefined>(undefined)
-
-// const BoardContextProvider = ({children}:{children:React.ReactNode}) => {
-    
-    
-//     return ( <BoardContext.Provider value={undefined}>{children}</BoardContext.Provider> );
-// }
-
-// export default BoardContextProvider;
