@@ -3,16 +3,15 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Sidebar from "@/components/sidebar";
 import Board from "@/components/board";
 import Column from "@/components/board/column";
-import Card from "@/components/board/column/card"
 import {DragDropContext, Draggable, Droppable, DropResult} from "@hello-pangea/dnd"
-import { Button } from "./components/ui/button";
 // Board
-import { useBoards, useBoard } from "./queries/boards.graphql";
+import { useBoard } from "./queries/boards.graphql";
 import { useEffect, useState } from "react";
 import { ColumnType, type BoardType } from "./types/main.types";
 import { BoardContext } from "./context/BoardContext";
 import {useColumns} from "@/app/queries/columns.graphql"
-import { useColumnsUpdateOrder } from "./mutations/columns.graphql";
+import { useColumnsUpdateOrder, useAddColumn, useDeleteColumnByID, useUpdateColumn } from "./mutations/columns.graphql";
+import AddColumnButton from "./components/board/addColumn";
 
 export default function Home() {
 
@@ -20,6 +19,9 @@ export default function Home() {
     const {data : board, refetch} = useBoard(boardId)
     const {data : columnsData, loading, error} = useColumns() 
     const {mutate} = useColumnsUpdateOrder()
+    const {addColumn} = useAddColumn()
+    const {deleteColumn} = useDeleteColumnByID()
+    const {updateOneColumn} = useUpdateColumn()
 
     const [columns, setColumns] = useState<ColumnType[]>()
 
@@ -30,18 +32,68 @@ export default function Home() {
     }, [columnsData])
 
     // column: add column
+
+    const addOneColumn =  async (name: string) =>{
+        if(!columns) return
+        await addColumn({
+            variables: {
+                object: {
+                   
+                    name, 
+                    board_id : boardId,
+                    position: columns.length
+                }},
+                onError: (error)=>{
+                    console.log(error)
+                },
+            onCompleted: (data)=>{
+                setColumns(columns=>{
+                    if(!columns) return;
+                    const col = data.insert_columns_one;
+                    return [...columns, {id:col.id, board_id: col.board_id, name: col.name, position: col.position}]
+                })
+            }
+            })
+    }
     // column: remove column
+    const removeColumn = async(columnId: string) =>{
+        deleteColumn({
+            variables: {
+                id : columnId
+            },
+            onCompleted: (data=>{
+                setColumns(columns => {
+
+                    if(!columns) return
+                    const id = data.delete_columns_by_pk.id;
+                    return columns.filter(c => c.id != id)
+
+                })
+                console.log(data)
+            })
+        })
+    }
     // column: edit column
+
+    const editColumn = async(columnId: string, update: Pick<ColumnType, "name"> ) =>{
+        updateOneColumn({
+            variables: {
+                id: columnId,
+                update
+            }
+        })
+    }
 
     // column: handle add card
 
-    //board update column order
-    
+    // column: remove card
+
+    // column: edit card
 
     //board: handle select board
 
     const handleSelectBoard = async (boardId:string)=>{
-        
+        setBoardId(boardId)
         try{
             await refetch({id: boardId})
         }catch(e){
@@ -109,30 +161,25 @@ export default function Home() {
 
   return (
     <SidebarProvider className=" h-full min-h-auto flex gap-10" >
-        <BoardContext.Provider value={{handleSelectBoard, board}}>
+        <BoardContext.Provider value={{handleSelectBoard, board, addOneColumn, columns, editColumn}}>
         <Sidebar />
             <DragDropContext onDragEnd={onDragEnd}>
-
                 <Board>
                     <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
                         {(provided)=>(
                             <div className="flex gap-2.5" ref={provided.innerRef} {...provided.droppableProps}> 
-
                                 {loading ? "loading..." : columns.map((x, index)=><Draggable index={index} key={x.id} draggableId={x.id}>
                                         {(provided)=>{
                                             return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
-                                                <Column name={x.name}>
+                                                <Column name={x.name} removeColumn = {()=>removeColumn(x.id)} columnId = {x.id}>
                                                     Card
                                                     </Column>
                                             </div>
                                         }}
-
                                 </Draggable> )}
                                 {provided.placeholder}
-                                <Button>Add column button</Button>
+                                <AddColumnButton  />
                             </div>
-                            
-                            
                             )}
                     </Droppable>
                 </Board>
