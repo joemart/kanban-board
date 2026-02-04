@@ -1,11 +1,37 @@
 mutation UpdateColumnsOrder($updates: [columns_updates!]!){
     update_columns_many(updates: $updates){
-        affected_rows
         returning{
             id
             board_id
             name
             position
         }
+    }
+}
+
+mutation InsertOneColumn($object: columns_insert_input!){
+    insert_columns_one(object: $object){
+            id
+            board_id
+            name
+            position
+    }
+}
+
+mutation DeleteColumnByID($id: uuid!){
+    delete_columns_by_pk(id: $id){
+            id
+            board_id
+            name
+            position
+    }
+}
+
+mutation UpdateOneColumn($id: uuid!, $update: columns_set_input!){
+    update_columns_by_pk(pk_columns: {id: $id}, _set: $update){
+            id
+            board_id
+            name
+            position
     }
 }
