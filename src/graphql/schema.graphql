@@ -1,3 +1,19 @@
 
 
 
+query GetAllMutations {
+  __type(name: "mutation_root") {
+    name
+    fields {
+      name
+      description
+      args {
+        name
+        type {
+          name
+          kind
+        }
+      }
+    }
+  }
+}
