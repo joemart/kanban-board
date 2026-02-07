@@ -1,15 +1,23 @@
-mutation UpdateColumnsOrder($updates: [columns_updates!]!){
+mutation updateColumnsOrder($updates: [columns_updates!]!){
     update_columns_many(updates: $updates){
         returning{
             id
             board_id
             name
             position
+            cards{
+                id
+                column_id
+                title
+                description
+                position
+                assignee
+            }
         }
     }
 }
 
-mutation InsertOneColumn($object: columns_insert_input!){
+mutation insertOneColumn($object: columns_insert_input!){
     insert_columns_one(object: $object){
             id
             board_id
@@ -18,7 +26,7 @@ mutation InsertOneColumn($object: columns_insert_input!){
     }
 }
 
-mutation DeleteColumnByID($id: uuid!){
+mutation deleteColumnByID($id: uuid!){
     delete_columns_by_pk(id: $id){
             id
             board_id
@@ -27,7 +35,7 @@ mutation DeleteColumnByID($id: uuid!){
     }
 }
 
-mutation UpdateOneColumn($id: uuid!, $update: columns_set_input!){
+mutation updateOneColumn($id: uuid!, $update: columns_set_input!){
     update_columns_by_pk(pk_columns: {id: $id}, _set: $update){
             id
             board_id

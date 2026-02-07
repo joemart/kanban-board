@@ -1,13 +1,21 @@
-query GetAllColumns{
+query getAllColumnsAllCards{
     columns {
         board_id,
         id,
         name,
-        position  
+        position
+        cards{
+            id
+            column_id
+            title
+            description
+            position
+            assignee
+        }
     }
 }
 
-query GetColumn($id: uuid!){
+query getColumn($id: uuid!){
     columns_by_pk(id: $id){
         board_id,
         id,

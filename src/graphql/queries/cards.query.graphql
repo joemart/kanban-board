@@ -1,0 +1,34 @@
+
+query getCard($id: uuid!){
+    cards_by_pk(id: $id){
+        id
+        column_id
+        title
+        description
+        position
+        assignee
+    }
+}
+
+query getCardsFromColumnId($id: uuid!){
+  cards(where: {column_id :{_eq:$id}}){
+    id
+    column_id
+    title
+    description
+    position
+    assignee
+  }
+}
+
+
+query getCardsFromBoardId($id: uuid!){
+  cards (where: {column: {board_id : {_eq: $id}}}){
+    id
+    title
+    description
+    position
+    assignee
+    column_id
+  }
+}
