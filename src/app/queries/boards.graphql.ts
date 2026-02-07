@@ -5,11 +5,8 @@ import { GetAllBoardsDocument, GetAllBoardsQuery, GetAllBoardsQueryVariables, Ge
 import { GetBoardDocument } from "@/graphql/__generated__/graphql";
 
 export function useBoards () {
-
     const {loading, error, data} = useQuery<GetAllBoardsQuery, GetAllBoardsQueryVariables>(GetAllBoardsDocument)
-
     return {loading, error, data}
-
 }
 
 export function useBoard (boardId : string) {
