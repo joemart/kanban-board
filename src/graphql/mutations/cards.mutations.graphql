@@ -1,0 +1,58 @@
+mutation updateCardOrder($updates: [cards_updates!]!){
+    update_cards_many(updates: $updates){
+        returning{
+            id
+            column_id
+            title
+            description
+            position
+            assignee
+        }
+    }
+}
+
+mutation updateColumnCardOrder($where: cards_bool_exp!, $set: cards_set_input){
+    update_cards(where: $where, _set: $set){
+        returning{
+            id
+            column_id
+            title
+            description
+            position
+            assignee
+        }
+    }
+}
+
+mutation addCard($object: cards_insert_input!){
+    insert_cards_one(object: $object){
+        id
+        column_id
+        title
+        description
+        position
+        assignee
+    }
+}
+
+mutation removeCard($id: uuid!){
+    delete_cards_by_pk(id: $id){
+        id
+        column_id
+        title
+        description
+        position
+        assignee
+    }
+}
+
+mutation editCard($id: uuid!){
+    update_cards_by_pk(pk_columns:{id: $id}){
+        id
+        column_id
+        title
+        description
+        position
+        assignee
+    }
+}
