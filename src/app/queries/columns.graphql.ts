@@ -1,9 +1,9 @@
-import { GetAllColumnsDocument, GetAllColumnsQuery, GetAllColumnsQueryVariables, GetColumnQuery, GetColumnQueryVariables } from "@/graphql/__generated__/graphql";
+import { GetAllColumnsAllCardsDocument, GetAllColumnsAllCardsQuery, GetAllColumnsAllCardsQueryVariables, GetColumnQuery, GetColumnQueryVariables } from "@/graphql/__generated__/graphql";
 import { GetColumnDocument } from "@/graphql/__generated__/graphql";
 import { useQuery } from "@apollo/client";
 
-export function useColumns(){
-    const {data, error, loading, refetch} = useQuery<GetAllColumnsQuery, GetAllColumnsQueryVariables>(GetAllColumnsDocument);
+export function useColumnsCards(){
+    const {data, error, loading, refetch} = useQuery<GetAllColumnsAllCardsQuery, GetAllColumnsAllCardsQueryVariables>(GetAllColumnsAllCardsDocument);
     return {data,error,loading, refetch}
 }
 

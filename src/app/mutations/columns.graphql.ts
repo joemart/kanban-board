@@ -1,11 +1,9 @@
 import { useMutation } from "@apollo/client";
 import { UpdateColumnsOrderDocument, InsertOneColumnDocument, DeleteColumnByIdDocument, UpdateOneColumnDocument } from "@/graphql/__generated__/graphql";
 
-export const useColumnsUpdateOrder = () => {
-
-    const [mutate, {data, error, loading}] = useMutation(UpdateColumnsOrderDocument)
-    
-    return {mutate, data, error, loading} ;
+export const useUpdateColumnsOrder = () => {
+    const [updateColumnOrder, {data, error, loading}] = useMutation(UpdateColumnsOrderDocument)
+    return {updateColumnOrder, data, error, loading} ;
 }
 
 export const useAddColumn = () =>{
