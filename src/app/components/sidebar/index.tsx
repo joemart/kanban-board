@@ -1,5 +1,5 @@
 'use client'
-import { useContext, useEffect } from "react"
+import { useContext } from "react"
 import { BoardContext } from "@/app/context/BoardContext"
 import {SidebarTrigger, Sidebar as SidebarMain, SidebarHeader, 
     SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuSub, 
@@ -12,11 +12,10 @@ import { Popover, PopoverTrigger, PopoverContent, PopoverClose  } from "@radix-u
 import {useForm, Controller} from "react-hook-form"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
-import { toast } from "sonner"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
+
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useBoards } from "@/app/queries/boards.graphql"
-import { useColumns } from "@/app/queries/columns.graphql"
 
 const formSchema = z.object({
     name: z.string()
@@ -28,8 +27,7 @@ const formSchema = z.object({
 
 const Sidebar = () => {
 
-    const {data, loading}  = useBoards()
-    const {data: columns} = useColumns()
+    const {data, loading, error}  = useBoards()
     const boardContext = useContext(BoardContext)
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -43,6 +41,8 @@ const Sidebar = () => {
 
 
     if(!boardContext) return;
+    if(loading) return
+    if(error) return
     if(!data) return
     const {handleSelectBoard} = boardContext;
     

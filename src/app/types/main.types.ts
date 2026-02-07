@@ -9,7 +9,8 @@
     id: string, //uuid
     board_id : string, //uuid
     name: string,
-    position: number
+    position: number,
+    cards: CardType[]
   }
 
   type CardType = {

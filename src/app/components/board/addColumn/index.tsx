@@ -32,7 +32,7 @@ const AddColumnButton = () => {
 
     return ( <Popover>
         <PopoverTrigger asChild>
-            <Button>Add column button</Button>
+            <Button>Add column</Button>
         </PopoverTrigger>
         <PopoverContent>
             <form className=" flex flex-col gap-3.5" onSubmit={form.handleSubmit(handleSubmit)} method="POST">
