@@ -10,25 +10,21 @@ import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BoardContext } from "@/app/context/BoardContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import AddCardButton from "./card/addCard";
 import { CardType } from "@/app/types/main.types";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
 import Card from "@/components/board/column/card"
 
 const formSchema = z.object({
-    name: z.string().min(3, "Must contain at least 3 characters")
-    .max(15, "Must be below 15 characters")
+    name: z.string().min(3, "Must contain at least 3 characters.")
+    .max(15, "Must be below 15 characters.")
 })
 
 const Column = ({name, removeColumn, columnId, cards} : {name: string, removeColumn: ()=>void,  columnId : string, cards: CardType[]}) => {
 
 
     const boardcontext = useContext(BoardContext)
-
-    //handle title column change
-    //handle add card
-
 
     //To Do, In Progress, Review, Done
     const form = useForm({
@@ -37,9 +33,9 @@ const Column = ({name, removeColumn, columnId, cards} : {name: string, removeCol
     })
 
     if(!boardcontext) return;
+    if(!boardcontext.columns) return;
     const handleSubmit = ({name} : {name: string}) =>{
         boardcontext.editColumn(columnId, {name})
-        
     }
 
 
@@ -55,28 +51,28 @@ const Column = ({name, removeColumn, columnId, cards} : {name: string, removeCol
                 </CardHeader>
                 <CardContent className=" flex flex-col gap-3">
                         <Droppable droppableId={columnId} direction="vertical" type="CARD">
-                                                        {(provided)=>{
-                                                        return <div ref={provided.innerRef} {...provided.droppableProps}>
-                                                                {cards.map((card, index) =>{
-                                                                    return <Draggable index={index} key={card.id} draggableId={card.id}>
-                                                                        {(provided)=>{
-                                                                            return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
-                                                                                        <Card id={card.id} position={index} >
-                                                                                            <>{card.title}</>
-                                                                                        </Card>
-                                                                                    </div>
-                                                                        }}
-                                                                        </Draggable>
-                                                                })}
-                                                                {provided.placeholder}
-                                                            </div>
-                                                        }}
-                                                        
-                                                    </Droppable>
+                            {(provided)=>{
+                            return <div ref={provided.innerRef} {...provided.droppableProps}>
+                                {cards.map((card, index) =>{
+                                    return <Draggable index={index} key={card.id} draggableId={card.id}>
+                                        {(provided)=>{
+                                            return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
+                                                        <Card id={card.id} position={index} >
+                                                            <>{card.title}</>
+                                                        </Card>
+                                                    </div>
+                                        }}
+                                        </Draggable>
+                                })}
+                                {provided.placeholder}
+                                </div>
+                            }}
+                            
+                        </Droppable>
                     </CardContent>
                 
                 <CardFooter >
-                   <AddCardButton columnId={columnId}/> 
+                   <AddCardButton columnId={columnId} length={cards.length}/> 
                 </CardFooter>
                 
             </CardMain>
@@ -93,7 +89,7 @@ const Column = ({name, removeColumn, columnId, cards} : {name: string, removeCol
                     Delete
                 </ContextMenuItem>
             </ContextMenuContent> 
-                <DialogContent>
+                <DialogContent aria-describedby={undefined}>
                     <DialogHeader>
                         <DialogTitle>
                             Edit the column
