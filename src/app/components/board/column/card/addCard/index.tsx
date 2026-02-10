@@ -22,7 +22,7 @@ import { useUserId } from "@nhost/nextjs";
 //             .max(200, "Must be below 200 characters.")
 //     })
 
-const AddCardButton = ({columnId}: {columnId:string}) => {
+const AddCardButton = ({columnId, length}: {columnId:string, length:number}) => {
     
     const getUserId = useUserId()
 
@@ -48,12 +48,10 @@ const AddCardButton = ({columnId}: {columnId:string}) => {
     if(!getUserId)return
 
     const onSubmit = ({title, description}:{title:string, description: string}) =>{
-        // boardcontext.addOneCard(columnId, title, description, _ , getUserId)
-        console.log(getUserId)
-        console.log("card submit")
+        boardcontext.addOneCard(columnId, title, description, length , getUserId)
+        // console.log(getUserId)
+        // console.log("card submit")
     }
-
-
 
     return ( <Popover>
         <PopoverTrigger asChild>

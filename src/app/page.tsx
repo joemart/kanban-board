@@ -5,7 +5,7 @@ import Board from "@/components/board";
 import Column from "@/components/board/column";
 import {DragDropContext, Draggable, Droppable, DropResult} from "@hello-pangea/dnd"
 // Board
-import { useBoard } from "./queries/boards.graphql";
+import { useBoard, useAllColumnsCardsFromBoardId } from "./queries/boards.graphql";
 import { useEffect, useRef, useState } from "react";
 import { CardType, ColumnType } from "./types/main.types";
 import { BoardContext } from "./context/BoardContext";
@@ -14,14 +14,18 @@ import { useUpdateColumnsOrder, useAddColumn, useDeleteColumnByID, useUpdateColu
 import AddColumnButton from "./components/board/addColumn";
 // Card
 import { useAddCard, useEditCard, useRemoveCard, useUpdateCardOrder, useUpdateColumnCardOrder } from "./mutations/cards.graphql";
-
+import { GetAllColumnsCardsFromBoardIdDocument } from "@/graphql/__generated__/graphql";
 
 export default function Home() {
 
     const [boardId, setBoardId] = useState("")
     const {data : board, refetch} = useBoard(boardId)
-    const {data : columnsData, loading, error} = useColumnsCards()
+    // const {data : columnsData, loading, error} = useColumnsCards()
     const shouldInitializeRef = useRef(true)
+    const [columns, setColumns] = useState<ColumnType[]>([])
+    const {data : columnsData, loading, error, refetchAllColumnsCardsFromBoardId} = useAllColumnsCardsFromBoardId(boardId)
+    // const {getColumns} = useAllColumnsCardsFromBoardId(boardId)
+
     //columns
     const {updateColumnOrder} = useUpdateColumnsOrder()
     const {addColumn} = useAddColumn()
@@ -31,43 +35,49 @@ export default function Home() {
     //cards
     const {addCard} = useAddCard()
     const {removeCard} = useRemoveCard()
-    const {} = useEditCard()
+    const {editCard} = useEditCard()
     const {updateCardOrder} = useUpdateCardOrder()
-    const {updateColumnCardOrder} = useUpdateColumnCardOrder()
 
-    const [columns, setColumns] = useState<ColumnType[]>()
-    const [cards, setCards] = useState<CardType[][]>()
-
+   
     useEffect(()=>{
+        
         if(columnsData && columnsData.columns && shouldInitializeRef.current){
             setColumns(columnsData.columns)
-            shouldInitializeRef.current = false
+            shouldInitializeRef.current=false
         }
 
     }, [columnsData])
 
-
     // column: add column
     const addOneColumn =  async (name: string):Promise<void> =>{
         try{
-          if(!columns) return
+            if(!columns) return
+            
+            const optimisticColumn = {
+                id:crypto.randomUUID(),
+                board_id: boardId,
+                name,
+                cards: [],
+                position: columns.length
+            }
+
+            setColumns(cols=>([...cols, optimisticColumn]))
+
+            const optimisticObject = {...optimisticColumn, cards:{data:[]}}
+
+
             await addColumn({
             variables: {
-                object: {
-                    name, 
-                    board_id : boardId,
-                    position: columns.length
-                }},
+                object: optimisticObject},
                 onError: (error)=>{
                     console.log(error)
                 },
-            onCompleted: (data)=>{
-                setColumns(columns=>{
-                    if(!columns) return;
-                    const col = data.insert_columns_one;
-                    return [...columns, {id:col.id, board_id: col.board_id, name: col.name, position: col.position, cards: []}]
-                })
-            }
+                refetchQueries: [
+                    {
+                        query: GetAllColumnsCardsFromBoardIdDocument,
+                        variables: {id: boardId}
+                    }
+                ]
             })  
         }catch(e){
             console.log(e)
@@ -78,19 +88,22 @@ export default function Home() {
     // column: remove column
     const removeColumn = async(columnId: string):Promise<void> =>{
         try{
+
+            const cols = [...columns]
+            let counter = 0
+            const optimisticColumns = cols.reduce((acc: ColumnType[], val: ColumnType)=>{
+                if(val.id != columnId){
+                const temp = {...val, position: counter++ }
+                acc.push(temp)}
+                return acc
+            },[])
+
+            setColumns(optimisticColumns)
+
             await deleteColumn({
                 variables: {
                     id : columnId
-                },
-                onCompleted: (data=>{
-                    setColumns(columns => {
-
-                        if(!columns) return
-                        const id = data.delete_columns_by_pk.id;
-                        return columns.filter(c => c.id != id)
-
-                    })
-                })
+                }
             })  
         }catch(e)
         {
@@ -102,6 +115,15 @@ export default function Home() {
     // column: edit column
     const editColumn = async(columnId: string, update: Pick<ColumnType, "name"> ):Promise<void> =>{
         try{
+
+            const cols = [...columns]
+            const optimisticColumns = cols.filter(cols=> {
+                if(cols.id == columnId)
+                    cols.name = update.name
+                return cols
+            })
+            setColumns(optimisticColumns)
+            
            await updateOneColumn({
             variables: {
                 id: columnId,
@@ -119,15 +141,29 @@ export default function Home() {
     // column: handle add card
     const addOneCard = async(columnId: string, title:string, description: string, position: number, assignee: string):Promise<void> =>{
         try{
+
+            const cols = [...columns]
+            const newCard : CardType = {
+                            id : crypto.randomUUID(),
+                            column_id: columnId,
+                            title,
+                            description,
+                            position,
+                            assignee
+                        }
+            const optimisticColumns = cols.map(col=> {
+
+                if(col.cards && col.id == columnId){
+                    return {...col, cards: [...col.cards, newCard]}
+                }
+                return col
+            })
+            console.log(optimisticColumns)
+            setColumns(optimisticColumns)
+
             await addCard({
                 variables: {
-                    object: {
-                        columnId,
-                        title,
-                        description,
-                        position,
-                        assignee
-                    }
+                    object: {...newCard}
                 }
             })
         }catch(e){
@@ -136,52 +172,55 @@ export default function Home() {
     }
 
     // column: remove card
-    const removeOneCard = async(cardId: string, position: number) : Promise<void>=>{
+    const removeOneCard = async(cardId: string) : Promise<void>=>{
+        
+        const cols = [...columns]
+        const optimisticColumns = cols.map(col=>{
+            
+            if(col.cards)
+                return {...col, cards: col.cards.filter((c,i)=> {if(c.id != cardId){return {...c, position:i}}})}
+            return col
+        })
+
+        setColumns(optimisticColumns)
+
         removeCard({
             variables: {
                 id : cardId
             },
-            onCompleted: (data)=>{
-                console.log(data)
-                setColumns(cols => {
-                    if(!cols) return
-                    const temp = [...cols]
-                    // return [...temp, temp[position].cards.filter(card => card.id != data.delete_cards_by_pk.id)]
-                    const result = temp.map(column =>{
-                        if(column.position == position)
-                        {
-                            const result = column.cards.filter(card=>{
-                                return (card.id != cardId)  
-                            })
-                            return {...column, result }
-                        }
-                        return column
-                    })
-                    return result
-                    // return [...temp, temp[position]]
-                })
-            }
+
         })
     }
 
     // column: edit card
+    const editOneCard = async(id:string, title:string, description:string, position:number, userId:string)=>{
+
+        console.log(id, title, description, position, userId)
+        const cols = [...columns]
+        const optimisticColumns = cols.map(col=>{
+            if(col.cards)
+                return {...col, cards: col.cards.map(c => c.id == id ? {...c, title, description} : c)}
+            return col
+        })
+
+        setColumns(optimisticColumns)
+
+        editCard({
+            variables: {
+                id,
+                set:{title, description}
+            }
+        })
+    }
+    
 
     //board: handle select board
 
     const handleSelectBoard = async (boardId:string)=>{
-
-        // setCards(()=>{
-        //     const temp = cardsFromBoardID.reduce((acc:CardType[][],card:CardType) =>{
-        //         if(!acc[card.position])
-        //             acc[card.position] = []
-        //         acc[card.position].push(card)
-        //         return acc
-        //     }, {})
-        //     console.log(temp)
-        //     return temp
-        // })
+        shouldInitializeRef.current = true
         setBoardId(boardId)
         try{
+            // await refetchAllColumnsCardsFromBoardId( {id: boardId})
             await refetch({id: boardId})
         }catch(e){
             console.log(e)
@@ -203,12 +242,15 @@ export default function Home() {
                 c.splice(destination.index, 0, movedColumn)
                 const reordered = c.map((c,i) => ({...c , position : i, cards: c.cards}))
                 setColumns(reordered)
+                reordered.forEach(x=>{
+                    console.log(x.id, x.position)
+                })
 
                 const updates = reordered.map((item) => ({
                                 where: {
                                     _and:[
                                         {id: { _eq: item.id }},
-                                        {board_id: { _eq: item.board_id }} 
+                                        {board_id: { _eq: boardId }} 
                                     ]
                                 },
                                 _set: { position: item.position }
@@ -216,11 +258,6 @@ export default function Home() {
                                 
                 updateColumnOrder({
                     variables:{updates},
-                    
-                    onCompleted: (data)=>{
-                        // console.log(data)
-                        // setColumns(data.update_columns_many.map((column:{returning:BoardType[]})=> (column.returning.pop())))
-                    },
                     onError: (e)=>{
                             console.log(e)
                         }
@@ -233,7 +270,7 @@ export default function Home() {
             
             if(columnStart == columnFinish){
                 
-                const cards = [...columns[columnStart].cards]
+                const cards = [...columns[columnStart].cards || []]
                 const [card] = cards.splice(source.index, 1)
                 cards.splice(destination.index, 0, card)
 
@@ -261,14 +298,6 @@ export default function Home() {
 
                 updateCardOrder({
                     variables: {updates},
-                    onCompleted: (data)=>{
-                        // const updatedCards = data.update_cards_many.map((card:{returning:CardType[]})=>({...card.returning[0]}))
-                        // const cols = [...columns]
-                        // cols[columnStart] = {
-                        //     ...cols[columnStart], cards:updatedCards
-                        // }
-                        // setColumns(cols)
-                    },
                     onError: (error)=>{
                         console.log(error)
                     }
@@ -279,8 +308,8 @@ export default function Home() {
             if(columnStart != columnFinish){
 
                 const cols = [...columns]
-                const cardsStart =[ ...cols[columnStart].cards]
-                const cardsFinish = [...cols[columnFinish].cards]
+                const cardsStart =[ ...cols[columnStart].cards || []]
+                const cardsFinish = [...cols[columnFinish].cards || []]
                 const [card] = cardsStart.splice(source.index, 1)
                 const updatedCard = {...card, column_id: cols[columnFinish].id}
                 cardsFinish.splice(destination.index,0, updatedCard)
@@ -288,6 +317,12 @@ export default function Home() {
                 cols[columnStart] = {...cols[columnStart] , cards: cardsStart}
                 cols[columnFinish] = {...cols[columnFinish], cards: cardsFinish}
 
+                // Updating position from 0 to n
+                if(cols[columnStart].cards)
+                cols[columnStart] = {...cols[columnStart], cards: cols[columnStart].cards.map((card,i) => ({...card, position:i}))}
+                if(cols[columnFinish].cards)
+                cols[columnFinish] = {...cols[columnFinish], cards: cols[columnFinish].cards.map((card,i) => ({...card, position:i}))}
+                
                 setColumns(cols)
                 const updates:unknown[] = []
                 cardsStart.forEach((card, index)=>{
@@ -330,35 +365,52 @@ export default function Home() {
     return <div>Loading columns...</div>;
   }
 
-  if (error) {
-    return (
-      <div>
-        <h3>Error Loading Columns</h3>
-        <p>{error.message}</p>
-        <pre>{JSON.stringify(error, null, 2)}</pre>
-      </div>
-    );
-  }
+//   if (error) {
+//     return (
+//       <div>
+//         <h3>Error Loading Columns</h3>
+//         <p>{error.message}</p>
+//         <pre>{JSON.stringify(error, null, 2)}</pre>
+//       </div>
+//     );
+//   }
+
+// I much prefer if the inside of the Board component is modularized
+// and then add a conditional.
 
   if (!columns) {
-    return <div>No columns data returned (null/undefined)</div>;
+    return (
+    <SidebarProvider className=" h-full min-h-auto flex gap-10" >
+        <BoardContext.Provider value={{handleSelectBoard, board, addOneColumn, columns, editColumn, addOneCard, removeOneCard, editOneCard}}>
+        <Sidebar />
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Board>
+                    <div>No columns</div>
+                </Board>
+            
+            </DragDropContext>
+        </BoardContext.Provider>
+      </SidebarProvider> 
+    
+  );
   }
 
-  if(!columnsData) return
+
 
   return (
     <SidebarProvider className=" h-full min-h-auto flex gap-10" >
-        <BoardContext.Provider value={{handleSelectBoard, board, addOneColumn, columns, editColumn, addOneCard, removeOneCard}}>
+        <BoardContext.Provider value={{handleSelectBoard, board, addOneColumn, columns, editColumn, addOneCard, removeOneCard, editOneCard}}>
         <Sidebar />
             <DragDropContext onDragEnd={onDragEnd}>
                 <Board>
                     <Droppable droppableId="all-columns" direction="horizontal" type="COLUMN">
                         {(provided)=>(
                             <div className="flex gap-2.5" ref={provided.innerRef} {...provided.droppableProps}> 
+                                
                                 {loading ? "loading..." : columns.map((column, index)=><Draggable index={index} key={column.id} draggableId={column.id}>
                                         {(provided)=>{
                                             return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
-                                                <Column name={column.name} removeColumn = {()=>removeColumn(column.id)} columnId = {column.id} cards = {column.cards}></Column>
+                                                <Column name={column.name} removeColumn = {()=>removeColumn(column.id)} columnId = {column.id} cards = {column.cards || []}></Column>
                                             </div>
                                         }}
                                 </Draggable> )}

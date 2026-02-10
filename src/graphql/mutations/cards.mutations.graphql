@@ -46,8 +46,8 @@ mutation removeCard($id: uuid!){
     }
 }
 
-mutation editCard($id: uuid!){
-    update_cards_by_pk(pk_columns:{id: $id}){
+mutation editCard($id: uuid!, $set: cards_set_input){
+    update_cards_by_pk(_set: $set, pk_columns:{id: $id}){
         id
         column_id
         title

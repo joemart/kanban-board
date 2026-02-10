@@ -2,5 +2,24 @@ mutation addBoard($object: boards_insert_input!) {
   insert_boards_one(object: $object) {
     id      # Returns auto-generated id
     name
+    owner
+    position
+  }
+}
+
+mutation deleteBoard($boardId: uuid!){
+  delete_boards_by_pk(id: $boardId){
+    id
+  }
+}
+
+mutation editBoard($where: boards_bool_exp!, $set: boards_set_input){
+  update_boards(where: $where, _set: $set){
+    returning {
+      id
+      name
+      owner
+      position
+    }
   }
 }

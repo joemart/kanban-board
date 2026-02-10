@@ -15,6 +15,25 @@ query getAllColumnsAllCards{
     }
 }
 
+query getAllColumnsCardsFromBoardId($id:uuid!){
+  columns(where: {
+    board_id: {_eq:$id}
+  }){
+        board_id,
+        id,
+        name,
+        position
+        cards{
+            id
+            column_id
+            title
+            description
+            position
+            assignee
+    }
+  }
+}
+
 query getColumn($id: uuid!){
     columns_by_pk(id: $id){
         board_id,

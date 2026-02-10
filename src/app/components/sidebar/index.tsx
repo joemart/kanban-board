@@ -1,5 +1,5 @@
 'use client'
-import { useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { BoardContext } from "@/app/context/BoardContext"
 import {SidebarTrigger, Sidebar as SidebarMain, SidebarHeader, 
     SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuSub, 
@@ -12,10 +12,13 @@ import { Popover, PopoverTrigger, PopoverContent, PopoverClose  } from "@radix-u
 import {useForm, Controller} from "react-hook-form"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
+import { useAddBoard } from "@/app/mutations/boards.graphql"
+import {useUserId} from "@nhost/nextjs"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useBoards } from "@/app/queries/boards.graphql"
+import { useBoards} from "@/app/queries/boards.graphql"
+import { BoardType } from "@/app/types/main.types"
 
 const formSchema = z.object({
     name: z.string()
@@ -27,23 +30,46 @@ const formSchema = z.object({
 
 const Sidebar = () => {
 
-    const {data, loading, error}  = useBoards()
+    const [boards, setBoards] = useState<BoardType[]>()
+    const {data, loading, error, refetch}  = useBoards()
     const boardContext = useContext(BoardContext)
+    const {addBoard} = useAddBoard()
+    const userId = useUserId()
+
+    useEffect(()=>{
+        if(!data)return
+        setBoards(data.boards)
+    },[data])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: { name: "" }
     })
 
-    const handleSubmit= (data: z.infer<typeof formSchema>) =>{
+    const handleSubmit= async (d: z.infer<typeof formSchema>) =>{
         //save to DB
+        try{
+            if(!data) return
+            await addBoard({
+                variables: {object: {
+                    name: d.name,
+                    owner : userId,
+                    position : data.boards.length
+                }}
+            })
+
+        }catch(e){
+            console.log(e)
+        }
+        refetch()
+        
     }
 
 
     if(!boardContext) return;
     if(loading) return
     if(error) return
-    if(!data) return
+    if(!boards) return
     const {handleSelectBoard} = boardContext;
     
 
@@ -59,14 +85,11 @@ const Sidebar = () => {
                         <CollapsibleTrigger className="group"> Projects <span className=" inline-block group-data-[state=open]:rotate-90">{">"}</span> </CollapsibleTrigger>
                         <CollapsibleContent>
                             <SidebarMenuSub >
-                                {loading ? "loading..." : 
-                                // JSON.stringify(data.boards)
-                                data.boards.map((board, index : number)=>
+                                {boards.map((board, index : number)=>
                                     <SidebarMenuSubItem className=" cursor-pointer" key={index} onClick={()=>handleSelectBoard(board.id)}>
                                         {board.name}
                                     </SidebarMenuSubItem>
-                                    )
-                                }
+                                    )}
                                 
                             </SidebarMenuSub>
                         </CollapsibleContent>
