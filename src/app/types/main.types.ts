@@ -10,7 +10,7 @@
     board_id : string, //uuid
     name: string,
     position: number,
-    cards: CardType[]
+    cards: CardType[] | undefined
   }
 
   type CardType = {
