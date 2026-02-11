@@ -12,7 +12,7 @@ import { Input } from "@/ui/input";
 const formSchema = z.object({
         name: z.string()
             .min(2, "Must contain at least 2 characters")
-            .max(10, "Must be below 10 characters")
+            .max(20, "Must be below 20 characters")
     })
 
 const AddColumnButton = () => {
