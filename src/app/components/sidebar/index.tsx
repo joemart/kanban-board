@@ -1,24 +1,27 @@
 'use client'
 import { useContext, useEffect, useState } from "react"
 import { BoardContext } from "@/app/context/BoardContext"
-import {SidebarTrigger, Sidebar as SidebarMain, SidebarHeader, 
+import {SidebarTrigger, Sidebar as SidebarMain, SidebarMenuBadge, SidebarMenuAction,
     SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuSub, 
     SidebarMenuSubItem, 
  } from "@/components/ui/sidebar"
 import {Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field"
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible"
 import {Button} from "@/components/ui/button"
-import { Popover, PopoverTrigger, PopoverContent, PopoverClose  } from "@radix-ui/react-popover"
+import { Popover, PopoverTrigger, PopoverContent, PopoverClose} from "@radix-ui/react-popover"
+import {Dialog, DialogClose, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogFooter} from "@/ui/dialog"
 import {useForm, Controller} from "react-hook-form"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
-import { useAddBoard } from "@/app/mutations/boards.graphql"
+import { useAddBoard, useEditBoard,useDeleteBoard } from "@/app/mutations/boards.graphql"
 import {useUserId} from "@nhost/nextjs"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useBoards} from "@/app/queries/boards.graphql"
 import { BoardType } from "@/app/types/main.types"
+
+import {Trash2, Pencil, ChevronRight} from "lucide-react"
 
 const formSchema = z.object({
     name: z.string()
@@ -30,11 +33,57 @@ const formSchema = z.object({
 
 const Sidebar = () => {
 
-    const [boards, setBoards] = useState<BoardType[]>()
+    const [boards, setBoards] = useState<BoardType[] >()
+    const [isAddProjectOpen, setIsAddProjectOpen] = useState(false)
     const {data, loading, error, refetch}  = useBoards()
     const boardContext = useContext(BoardContext)
     const {addBoard} = useAddBoard()
     const userId = useUserId()
+    const {deleteBoard} = useDeleteBoard()
+    const {editBoard} = useEditBoard()
+
+
+    //board: remove board
+    const deleteOneBoard = async(boardId:string)=>{
+        try{
+            if(!boards) return
+
+            const tempBoards = [...boards]
+            const oneLessBoard = tempBoards.filter(board=> board.id!= boardId)
+            const optimisticBoards = oneLessBoard.map((board,index)=> ({...board, position:index}))
+            console.log(optimisticBoards)
+            setBoards(optimisticBoards)
+            deleteBoard({
+                variables: {boardId}
+            })
+        }catch(e)
+        {
+            console.log(e)
+        }
+       
+
+    }
+
+    //board: edit board
+    const editOneBoard = async(boardId:string, name:string)=>{
+        try{
+            if(!boards) return
+            const optimisticBoards = [...boards]
+            const index = optimisticBoards.findIndex(board=> board.id == boardId)
+            const [foundBoard] = optimisticBoards.splice(index, 1)
+            const updatedBoard = {...foundBoard, name}
+            optimisticBoards.splice(index, 0, updatedBoard)
+            setBoards(optimisticBoards)
+            editBoard({variables: {
+                            set: {name},
+                            id: boardId}})
+
+        }
+        catch(e){
+            console.log(e)
+        }
+        
+    }
 
     useEffect(()=>{
         if(!data)return
@@ -46,15 +95,24 @@ const Sidebar = () => {
         defaultValues: { name: "" }
     })
 
+    const editForm = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: { name: "" }
+    })
+    const {register, formState:{errors}} = editForm
+
     const handleSubmit= async (d: z.infer<typeof formSchema>) =>{
         //save to DB
+        if(!boards) return
+        
         try{
+            setIsAddProjectOpen(false)
             if(!data) return
             await addBoard({
                 variables: {object: {
                     name: d.name,
                     owner : userId,
-                    position : data.boards.length
+                    position : boards.length
                 }}
             })
 
@@ -64,7 +122,25 @@ const Sidebar = () => {
         refetch()
         
     }
+    const handleDeleteSubmit = async(id:string)=>{
+        try{
+           deleteOneBoard(id) 
+        }catch(e){
+            console.log(e)
+        }
+        
+    }
 
+    const handleEditSubmit = async(boardId: string, name:string)=>{
+        try{
+            
+            editOneBoard(boardId, name)
+        }
+        catch(e){
+            console.log(e)
+        }
+        
+    }
 
     if(!boardContext) return;
     if(loading) return
@@ -82,20 +158,54 @@ const Sidebar = () => {
                 <SidebarMenu className=" px-2" >
 
                     <Collapsible >
-                        <CollapsibleTrigger className="group"> Projects <span className=" inline-block group-data-[state=open]:rotate-90">{">"}</span> </CollapsibleTrigger>
+                        <CollapsibleTrigger className="group flex justify-center"> Projects <span className=" inline-block group-data-[state=open]:rotate-90"><ChevronRight/></span> </CollapsibleTrigger>
                         <CollapsibleContent>
-                            <SidebarMenuSub >
-                                {boards.map((board, index : number)=>
-                                    <SidebarMenuSubItem className=" cursor-pointer" key={index} onClick={()=>handleSelectBoard(board.id)}>
-                                        {board.name}
-                                    </SidebarMenuSubItem>
-                                    )}
+                            <SidebarMenuSub>
                                 
+                                    {boards.map((board, index : number)=><div key={index}>
+                                        <SidebarMenuSubItem className=" flex items-center justify-between " key={index} >
+                                            <Button className="cursor-pointer" onClick={()=>handleSelectBoard(board.id)}>{board.name}</Button>
+                                            <Dialog>
+                                                <DialogTrigger>
+                                                    <SidebarMenuBadge className="w-6 relative cursor-pointer"><Trash2/></SidebarMenuBadge>
+                                                    </DialogTrigger>
+                                                    <DialogContent className=" flex flex-col items-center">
+                                                    <DialogTitle>Are you sure you want to delete {board.name}?</DialogTitle>
+                                                    <DialogFooter className="flex justify-center" >
+                                                        <DialogDescription className="flex justify-between w-[250px] max-w-[150px]">
+                                                            <Button asChild onClick={()=>handleDeleteSubmit(board.id)} ><DialogClose>Yes</DialogClose></Button>
+                                                            <Button asChild><DialogClose>No</DialogClose></Button>
+                                                        </DialogDescription>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+
+                                            <Dialog>
+                                                    <DialogTrigger>
+                                                        <SidebarMenuBadge className="w-6 relative cursor-pointer"><Pencil/></SidebarMenuBadge>
+                                                    </DialogTrigger>
+                                                    <DialogContent className=" flex flex-col items-center" aria-describedby={undefined}>
+                                                    <DialogTitle>Edit board</DialogTitle>
+                                                    <DialogFooter className="flex justify-center" >
+                                                            <form method="POST" onSubmit={editForm.handleSubmit(formData => handleEditSubmit(board.id, formData.name))}>
+                                                                <Input type="text" defaultValue={board.name} {...register("name")} aria-disabled={errors.name ? true : false}/>
+                                                                {errors.name && <FieldError errors={[errors.name]}></FieldError>}
+                                                                <Button asChild type="submit"><DialogClose>Submit</DialogClose></Button>
+                                                            </form>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+                                            
+                                        </SidebarMenuSubItem>
+
+                                            
+                                        
+                                        </div>
+                                    )}
+                                    
+                               
                             </SidebarMenuSub>
-                        </CollapsibleContent>
-                    </Collapsible>
-                    
-                    <Popover >
+                            <Popover open={isAddProjectOpen} onOpenChange={setIsAddProjectOpen}>
                         <PopoverTrigger asChild>
                              <Button  variant={"outline"} className=" w-fit self-end">Add Project +</Button>
                         </PopoverTrigger>
@@ -124,7 +234,10 @@ const Sidebar = () => {
                                        
                                        </FieldGroup>
                                         <div className="flex justify-between">
-                                            <Button variant={'outline'}>Save</Button>
+                                            
+                                            <Button type="submit" variant={'outline'} >Save</Button>
+                                            
+                                            
                                             <PopoverClose asChild>
                                                 <Button variant={'destructive'}>Cancel</Button>
                                             </PopoverClose>
@@ -136,7 +249,11 @@ const Sidebar = () => {
                            
                             
                         </PopoverContent>
-                    </Popover>
+                            </Popover>
+                        </CollapsibleContent>
+                    </Collapsible>
+                    
+                    
                     
 
                 </SidebarMenu>
