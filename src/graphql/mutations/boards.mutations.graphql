@@ -13,13 +13,13 @@ mutation deleteBoard($boardId: uuid!){
   }
 }
 
-mutation editBoard($where: boards_bool_exp!, $set: boards_set_input){
-  update_boards(where: $where, _set: $set){
-    returning {
+mutation editBoard($set:boards_set_input, $id: uuid!){
+  update_boards_by_pk(pk_columns:{id:$id}, _set: $set){
+
       id
       name
       owner
       position
-    }
+    
   }
 }
