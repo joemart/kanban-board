@@ -1,4 +1,6 @@
 'use client'
+
+import { useEffect, useRef, useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Sidebar from "@/components/sidebar";
 import Board from "@/components/board";
@@ -6,10 +8,8 @@ import Column from "@/components/board/column";
 import {DragDropContext, Draggable, Droppable, DropResult} from "@hello-pangea/dnd"
 // Board
 import { useBoard, useAllColumnsCardsFromBoardId } from "./queries/boards.graphql";
-import { useEffect, useRef, useState } from "react";
 import { CardType, ColumnType } from "./types/main.types";
 import { BoardContext } from "./context/BoardContext";
-import {useColumnsCards} from "@/app/queries/columns.graphql"
 import { useUpdateColumnsOrder, useAddColumn, useDeleteColumnByID, useUpdateColumn } from "./mutations/columns.graphql";
 import AddColumnButton from "./components/board/addColumn";
 // Card
@@ -20,11 +20,9 @@ export default function Home() {
 
     const [boardId, setBoardId] = useState("")
     const {data : board, refetch} = useBoard(boardId)
-    // const {data : columnsData, loading, error} = useColumnsCards()
     const shouldInitializeRef = useRef(true)
     const [columns, setColumns] = useState<ColumnType[]>([])
     const {data : columnsData, loading, error, refetchAllColumnsCardsFromBoardId} = useAllColumnsCardsFromBoardId(boardId)
-    // const {getColumns} = useAllColumnsCardsFromBoardId(boardId)
 
     //columns
     const {updateColumnOrder} = useUpdateColumnsOrder()
@@ -47,6 +45,9 @@ export default function Home() {
         }
 
     }, [columnsData])
+
+
+
 
     // column: add column
     const addOneColumn =  async (name: string):Promise<void> =>{
@@ -213,7 +214,6 @@ export default function Home() {
         })
     }
     
-
     //board: handle select board
 
     const handleSelectBoard = async (boardId:string)=>{
@@ -242,9 +242,6 @@ export default function Home() {
                 c.splice(destination.index, 0, movedColumn)
                 const reordered = c.map((c,i) => ({...c , position : i, cards: c.cards}))
                 setColumns(reordered)
-                reordered.forEach(x=>{
-                    console.log(x.id, x.position)
-                })
 
                 const updates = reordered.map((item) => ({
                                 where: {
