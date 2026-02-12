@@ -1,10 +1,10 @@
 import {createContext} from "react"
 import { ColumnType } from "@/types/main.types";
-import { GetBoardQuery } from "@/graphql/__generated__/graphql";
+import { SubscribeBoardSubscription } from "@/graphql/__generated__/graphql";
 
 type BoardContextType = {
     handleSelectBoard(boardId:string):Promise<void>,
-    board : GetBoardQuery | undefined,
+    board : SubscribeBoardSubscription | undefined,
     columns: ColumnType[] | undefined,
     addOneColumn(name:string): Promise<void>,
     editColumn(columndId:string, update:Pick<ColumnType, "name">): Promise<void>
