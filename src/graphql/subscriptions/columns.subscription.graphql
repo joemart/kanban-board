@@ -1,0 +1,18 @@
+subscription subscribeAllColumnsCardsFromBoardId($id:uuid!){
+  columns(where: {
+    board_id: {_eq:$id}
+  }, order_by: {position: asc}){
+        board_id,
+        id,
+        name,
+        position
+        cards(order_by: {position: asc}){
+            id
+            column_id
+            title
+            description
+            position
+            assignee
+    }
+  }
+}

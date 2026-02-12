@@ -1,0 +1,11 @@
+subscription subscribeAllBoards {
+    boards{
+        id, name, position, owner
+    }
+}
+
+subscription subscribeBoard($id: uuid!){
+        boards_by_pk(id:$id){
+        id, name, position, owner
+    }
+}

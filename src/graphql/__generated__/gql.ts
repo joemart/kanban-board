@@ -23,6 +23,8 @@ type Documents = {
     "query GetAllColors {\n  colors {\n    id\n    name\n  }\n}": typeof types.GetAllColorsDocument,
     "query getAllColumnsAllCards {\n  columns {\n    board_id\n    id\n    name\n    position\n    cards {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}\n\nquery getAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}) {\n    board_id\n    id\n    name\n    position\n    cards {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}\n\nquery getColumn($id: uuid!) {\n  columns_by_pk(id: $id) {\n    board_id\n    id\n    name\n    position\n  }\n}": typeof types.GetAllColumnsAllCardsDocument,
     "query GetAllMutations {\n  __type(name: \"mutation_root\") {\n    name\n    fields {\n      name\n      description\n      args {\n        name\n        type {\n          name\n          kind\n        }\n      }\n    }\n  }\n}": typeof types.GetAllMutationsDocument,
+    "subscription subscribeAllBoards {\n  boards {\n    id\n    name\n    position\n    owner\n  }\n}\n\nsubscription subscribeBoard($id: uuid!) {\n  boards_by_pk(id: $id) {\n    id\n    name\n    position\n    owner\n  }\n}": typeof types.SubscribeAllBoardsDocument,
+    "subscription subscribeAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}, order_by: {position: asc}) {\n    board_id\n    id\n    name\n    position\n    cards(order_by: {position: asc}) {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}": typeof types.SubscribeAllColumnsCardsFromBoardIdDocument,
 };
 const documents: Documents = {
     "mutation addBoard($object: boards_insert_input!) {\n  insert_boards_one(object: $object) {\n    id\n    name\n    owner\n    position\n  }\n}\n\nmutation deleteBoard($boardId: uuid!) {\n  delete_boards_by_pk(id: $boardId) {\n    id\n  }\n}\n\nmutation editBoard($set: boards_set_input, $id: uuid!) {\n  update_boards_by_pk(pk_columns: {id: $id}, _set: $set) {\n    id\n    name\n    owner\n    position\n  }\n}": types.AddBoardDocument,
@@ -34,6 +36,8 @@ const documents: Documents = {
     "query GetAllColors {\n  colors {\n    id\n    name\n  }\n}": types.GetAllColorsDocument,
     "query getAllColumnsAllCards {\n  columns {\n    board_id\n    id\n    name\n    position\n    cards {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}\n\nquery getAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}) {\n    board_id\n    id\n    name\n    position\n    cards {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}\n\nquery getColumn($id: uuid!) {\n  columns_by_pk(id: $id) {\n    board_id\n    id\n    name\n    position\n  }\n}": types.GetAllColumnsAllCardsDocument,
     "query GetAllMutations {\n  __type(name: \"mutation_root\") {\n    name\n    fields {\n      name\n      description\n      args {\n        name\n        type {\n          name\n          kind\n        }\n      }\n    }\n  }\n}": types.GetAllMutationsDocument,
+    "subscription subscribeAllBoards {\n  boards {\n    id\n    name\n    position\n    owner\n  }\n}\n\nsubscription subscribeBoard($id: uuid!) {\n  boards_by_pk(id: $id) {\n    id\n    name\n    position\n    owner\n  }\n}": types.SubscribeAllBoardsDocument,
+    "subscription subscribeAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}, order_by: {position: asc}) {\n    board_id\n    id\n    name\n    position\n    cards(order_by: {position: asc}) {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}": types.SubscribeAllColumnsCardsFromBoardIdDocument,
 };
 
 /**
@@ -86,6 +90,14 @@ export function graphql(source: "query getAllColumnsAllCards {\n  columns {\n   
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query GetAllMutations {\n  __type(name: \"mutation_root\") {\n    name\n    fields {\n      name\n      description\n      args {\n        name\n        type {\n          name\n          kind\n        }\n      }\n    }\n  }\n}"): (typeof documents)["query GetAllMutations {\n  __type(name: \"mutation_root\") {\n    name\n    fields {\n      name\n      description\n      args {\n        name\n        type {\n          name\n          kind\n        }\n      }\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "subscription subscribeAllBoards {\n  boards {\n    id\n    name\n    position\n    owner\n  }\n}\n\nsubscription subscribeBoard($id: uuid!) {\n  boards_by_pk(id: $id) {\n    id\n    name\n    position\n    owner\n  }\n}"): (typeof documents)["subscription subscribeAllBoards {\n  boards {\n    id\n    name\n    position\n    owner\n  }\n}\n\nsubscription subscribeBoard($id: uuid!) {\n  boards_by_pk(id: $id) {\n    id\n    name\n    position\n    owner\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "subscription subscribeAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}, order_by: {position: asc}) {\n    board_id\n    id\n    name\n    position\n    cards(order_by: {position: asc}) {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}"): (typeof documents)["subscription subscribeAllColumnsCardsFromBoardId($id: uuid!) {\n  columns(where: {board_id: {_eq: $id}}, order_by: {position: asc}) {\n    board_id\n    id\n    name\n    position\n    cards(order_by: {position: asc}) {\n      id\n      column_id\n      title\n      description\n      position\n      assignee\n    }\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
