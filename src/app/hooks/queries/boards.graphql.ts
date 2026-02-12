@@ -1,5 +1,5 @@
 'use client'
-import { useQuery, useLazyQuery  } from "@apollo/client";
+import { useQuery  } from "@apollo/client";
 
 import { GetAllBoardsDocument, GetAllBoardsQuery, GetAllBoardsQueryVariables, GetBoardQuery, GetBoardQueryVariables, GetAllColumnsAllCardsDocument, GetAllColumnsCardsFromBoardIdDocument } from "@/graphql/__generated__/graphql";
 import { GetBoardDocument } from "@/graphql/__generated__/graphql";
