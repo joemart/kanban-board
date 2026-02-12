@@ -7,23 +7,25 @@ import Board from "@/components/board";
 import Column from "@/components/board/column";
 import {DragDropContext, Draggable, Droppable, DropResult} from "@hello-pangea/dnd"
 // Board
-import { useBoard, useAllColumnsCardsFromBoardId } from "./queries/boards.graphql";
+
+import { useSubBoard } from "./hooks/subscriptions/boards.graphql";
+import { useSubAllColumnsCardsFromBoardId } from "./hooks/subscriptions/columns.graphql";
 import { CardType, ColumnType } from "./types/main.types";
 import { BoardContext } from "./context/BoardContext";
-import { useUpdateColumnsOrder, useAddColumn, useDeleteColumnByID, useUpdateColumn } from "./mutations/columns.graphql";
+import { useUpdateColumnsOrder, useAddColumn, useDeleteColumnByID, useUpdateColumn } from "./hooks/mutations/columns.graphql";
 import AddColumnButton from "./components/board/addColumn";
 // Card
-import { useAddCard, useEditCard, useRemoveCard, useUpdateCardOrder, useUpdateColumnCardOrder } from "./mutations/cards.graphql";
-import { GetAllColumnsCardsFromBoardIdDocument } from "@/graphql/__generated__/graphql";
+import { useAddCard, useEditCard, useRemoveCard, useUpdateCardOrder, useUpdateColumnCardOrder } from "./hooks/mutations/cards.graphql";
 
 export default function Home() {
 
     const [boardId, setBoardId] = useState("")
-    const {data : board, refetch} = useBoard(boardId)
+    const {data : board} = useSubBoard(boardId)
     const shouldInitializeRef = useRef(true)
     const [columns, setColumns] = useState<ColumnType[]>([])
-    const {data : columnsData, loading, error, refetchAllColumnsCardsFromBoardId} = useAllColumnsCardsFromBoardId(boardId)
-
+    const {data : columnsData, loading} = useSubAllColumnsCardsFromBoardId(boardId)
+    
+    
     //columns
     const {updateColumnOrder} = useUpdateColumnsOrder()
     const {addColumn} = useAddColumn()
@@ -38,10 +40,10 @@ export default function Home() {
 
    
     useEffect(()=>{
-        
-        if(columnsData && columnsData.columns && shouldInitializeRef.current){
+
+        if(columnsData && columnsData.columns ){
             setColumns(columnsData.columns)
-            shouldInitializeRef.current=false
+
         }
 
     }, [columnsData])
@@ -66,19 +68,12 @@ export default function Home() {
 
             const optimisticObject = {...optimisticColumn, cards:{data:[]}}
 
-
             await addColumn({
             variables: {
                 object: optimisticObject},
                 onError: (error)=>{
                     console.log(error)
-                },
-                refetchQueries: [
-                    {
-                        query: GetAllColumnsCardsFromBoardIdDocument,
-                        variables: {id: boardId}
-                    }
-                ]
+                }
             })  
         }catch(e){
             console.log(e)
@@ -89,17 +84,6 @@ export default function Home() {
     // column: remove column
     const removeColumn = async(columnId: string):Promise<void> =>{
         try{
-
-            const cols = [...columns]
-            let counter = 0
-            const optimisticColumns = cols.reduce((acc: ColumnType[], val: ColumnType)=>{
-                if(val.id != columnId){
-                const temp = {...val, position: counter++ }
-                acc.push(temp)}
-                return acc
-            },[])
-
-            setColumns(optimisticColumns)
 
             await deleteColumn({
                 variables: {
@@ -116,14 +100,6 @@ export default function Home() {
     // column: edit column
     const editColumn = async(columnId: string, update: Pick<ColumnType, "name"> ):Promise<void> =>{
         try{
-
-            const cols = [...columns]
-            const optimisticColumns = cols.filter(cols=> {
-                if(cols.id == columnId)
-                    cols.name = update.name
-                return cols
-            })
-            setColumns(optimisticColumns)
             
            await updateOneColumn({
             variables: {
@@ -159,7 +135,7 @@ export default function Home() {
                 }
                 return col
             })
-            console.log(optimisticColumns)
+            // console.log(optimisticColumns)
             setColumns(optimisticColumns)
 
             await addCard({
@@ -174,16 +150,6 @@ export default function Home() {
 
     // column: remove card
     const removeOneCard = async(cardId: string) : Promise<void>=>{
-        
-        const cols = [...columns]
-        const optimisticColumns = cols.map(col=>{
-            
-            if(col.cards)
-                return {...col, cards: col.cards.filter((c,i)=> {if(c.id != cardId){return {...c, position:i}}})}
-            return col
-        })
-
-        setColumns(optimisticColumns)
 
         removeCard({
             variables: {
@@ -195,17 +161,7 @@ export default function Home() {
 
     // column: edit card
     const editOneCard = async(id:string, title:string, description:string, position:number, userId:string)=>{
-
-        console.log(id, title, description, position, userId)
-        const cols = [...columns]
-        const optimisticColumns = cols.map(col=>{
-            if(col.cards)
-                return {...col, cards: col.cards.map(c => c.id == id ? {...c, title, description} : c)}
-            return col
-        })
-
-        setColumns(optimisticColumns)
-
+        
         editCard({
             variables: {
                 id,
@@ -219,12 +175,7 @@ export default function Home() {
     const handleSelectBoard = async (boardId:string)=>{
         shouldInitializeRef.current = true
         setBoardId(boardId)
-        try{
-            // await refetchAllColumnsCardsFromBoardId( {id: boardId})
-            await refetch({id: boardId})
-        }catch(e){
-            console.log(e)
-        }
+
     }
 
     const onDragEnd = (result: DropResult) =>{
@@ -321,7 +272,8 @@ export default function Home() {
                 cols[columnFinish] = {...cols[columnFinish], cards: cols[columnFinish].cards.map((card,i) => ({...card, position:i}))}
                 
                 setColumns(cols)
-                const updates:unknown[] = []
+                
+                const updates = []
                 cardsStart.forEach((card, index)=>{
                     updates.push( {
                         where: {column_id : {_eq: cols[columnStart].id},
@@ -361,38 +313,6 @@ export default function Home() {
   if (loading) {
     return <div>Loading columns...</div>;
   }
-
-//   if (error) {
-//     return (
-//       <div>
-//         <h3>Error Loading Columns</h3>
-//         <p>{error.message}</p>
-//         <pre>{JSON.stringify(error, null, 2)}</pre>
-//       </div>
-//     );
-//   }
-
-// I much prefer if the inside of the Board component is modularized
-// and then add a conditional.
-
-  if (!columns) {
-    return (
-    <SidebarProvider className=" h-full min-h-auto flex gap-10" >
-        <BoardContext.Provider value={{handleSelectBoard, board, addOneColumn, columns, editColumn, addOneCard, removeOneCard, editOneCard}}>
-        <Sidebar />
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Board>
-                    <div>No columns</div>
-                </Board>
-            
-            </DragDropContext>
-        </BoardContext.Provider>
-      </SidebarProvider> 
-    
-  );
-  }
-
-
 
   return (
     <SidebarProvider className=" h-full min-h-auto flex gap-10" >

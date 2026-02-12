@@ -13,13 +13,15 @@ import {Dialog, DialogClose, DialogContent, DialogTrigger, DialogTitle, DialogDe
 import {useForm, Controller} from "react-hook-form"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
-import { useAddBoard, useEditBoard,useDeleteBoard } from "@/app/mutations/boards.graphql"
+import { useAddBoard, useEditBoard,useDeleteBoard } from "@/app/hooks/mutations/boards.graphql"
 import {useUserId} from "@nhost/nextjs"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { useBoards} from "@/app/queries/boards.graphql"
+
 import { BoardType } from "@/app/types/main.types"
+
+import { useSubBoards } from "@/app/hooks/subscriptions/boards.graphql"
 
 import {Trash2, Pencil, ChevronRight} from "lucide-react"
 
@@ -35,7 +37,7 @@ const Sidebar = () => {
 
     const [boards, setBoards] = useState<BoardType[] >()
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false)
-    const {data, loading, error, refetch}  = useBoards()
+    const {dataSubBoards} = useSubBoards()
     const boardContext = useContext(BoardContext)
     const {addBoard} = useAddBoard()
     const userId = useUserId()
@@ -46,13 +48,6 @@ const Sidebar = () => {
     //board: remove board
     const deleteOneBoard = async(boardId:string)=>{
         try{
-            if(!boards) return
-
-            const tempBoards = [...boards]
-            const oneLessBoard = tempBoards.filter(board=> board.id!= boardId)
-            const optimisticBoards = oneLessBoard.map((board,index)=> ({...board, position:index}))
-            console.log(optimisticBoards)
-            setBoards(optimisticBoards)
             deleteBoard({
                 variables: {boardId}
             })
@@ -67,13 +62,7 @@ const Sidebar = () => {
     //board: edit board
     const editOneBoard = async(boardId:string, name:string)=>{
         try{
-            if(!boards) return
-            const optimisticBoards = [...boards]
-            const index = optimisticBoards.findIndex(board=> board.id == boardId)
-            const [foundBoard] = optimisticBoards.splice(index, 1)
-            const updatedBoard = {...foundBoard, name}
-            optimisticBoards.splice(index, 0, updatedBoard)
-            setBoards(optimisticBoards)
+
             editBoard({variables: {
                             set: {name},
                             id: boardId}})
@@ -85,10 +74,11 @@ const Sidebar = () => {
         
     }
 
+
     useEffect(()=>{
-        if(!data)return
-        setBoards(data.boards)
-    },[data])
+        if(!dataSubBoards)return
+        setBoards(dataSubBoards.boards)
+    },[dataSubBoards])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -107,7 +97,7 @@ const Sidebar = () => {
         
         try{
             setIsAddProjectOpen(false)
-            if(!data) return
+            // if(!data) return
             await addBoard({
                 variables: {object: {
                     name: d.name,
@@ -119,7 +109,7 @@ const Sidebar = () => {
         }catch(e){
             console.log(e)
         }
-        refetch()
+  
         
     }
     const handleDeleteSubmit = async(id:string)=>{
@@ -143,8 +133,6 @@ const Sidebar = () => {
     }
 
     if(!boardContext) return;
-    if(loading) return
-    if(error) return
     if(!boards) return
     const {handleSelectBoard} = boardContext;
     
@@ -253,8 +241,6 @@ const Sidebar = () => {
                         </CollapsibleContent>
                     </Collapsible>
                     
-                    
-                    
 
                 </SidebarMenu>
             </SidebarContent>
@@ -269,4 +255,3 @@ const Sidebar = () => {
 export default Sidebar;
 
 
-// 787 561 0750 - Medicare
