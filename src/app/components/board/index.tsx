@@ -1,7 +1,6 @@
 'use client'
 import {Card, CardHeader, CardContent, CardAction, CardDescription, CardTitle} from "@/ui/card";
 import {Badge} from "@/ui/badge"
-import { useBoard } from "@/app/queries/boards.graphql";
 import { useContext, useEffect } from "react";
 import { BoardContext } from "@/app/context/BoardContext";
 const Board = ({children}: {children: React.ReactNode}) => {
