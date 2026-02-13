@@ -26,7 +26,7 @@ const Register = () => {
         setValue(v=> ({...v, [name] : value}))
     }
 
-    const onSubmit: React.MouseEventHandler<HTMLFormElement> = async (e)=>{
+    const onSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e)=>{
         
         e.preventDefault()
         try{
