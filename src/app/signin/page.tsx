@@ -1,50 +1,49 @@
 'use client'
 import { useSignInEmailPassword } from "@nhost/nextjs";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Form from "../components/form";
+import {useForm} from "react-hook-form"
+
+type FormType = {
+    email:string, 
+    password:string
+}
+
 
 const SignIn = () => {
-    
-    interface ValueType {
-        email: string,
-        password: string
-    }
+
+    const {register, handleSubmit:handleSub, watch, formState:{errors}} = useForm<FormType>()
     const {signInEmailPassword} = useSignInEmailPassword()
-    const [value, setValue] = useState<ValueType>({
-        email: "",
-        password: ""
-    })
+    const router = useRouter()
 
-    
+    const onSubmit = async ({email, password} : FormType) =>{
 
-    const handleChange:React.ChangeEventHandler<HTMLInputElement> = (e) =>{
-        const name = e.currentTarget.name;
-        const value = e.currentTarget.value;
-       
-        setValue(v=>({...v, [name]:value}))
+        const {accessToken} = await signInEmailPassword(email, password);
+        
+        await fetch("/api/auth", {
+            method:"POST",
+            headers: {'Content-type': 'application/json'},
+            body: JSON.stringify({email,password,accessToken})
+        })
+
+        router.push("/")
+
     }
 
-    const handleSubmit:React.FormEventHandler<HTMLFormElement> = async (e) =>{
-        e.preventDefault()
+    return ( 
+        <Form 
+        register={register} 
+        handleSubmit={handleSub} 
+        errors={errors} 
+        onSubmit={onSubmit} 
+        watch={watch} 
         
-        try{
-
-            await signInEmailPassword(value.email, value.password);  
-        }
-        catch(e){
-            console.log(e)
-        }
+        description = {"Enter an email to sign in to Kanban Board"}
+        header = {"Sign in"}
+        confirmPassword={false}
         
-    }
-
-
-
-    return ( <section>
-        <form method="POST" onSubmit={handleSubmit}>
-            <input type="email" name="email" onChange={handleChange}/>
-            <input type="password" name="password" onChange={handleChange}/>
-            <button type="submit">Submit</button>
-        </form>
-    </section> );
+        />
+    );
 }
  
 export default SignIn;

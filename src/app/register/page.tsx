@@ -1,53 +1,53 @@
 'use client'
 import { useSignUpEmailPassword } from "@nhost/nextjs";
-import { useState } from "react";
+import {useForm} from "react-hook-form"
+import Form from "@/components/form";
+import { useRouter } from "next/navigation";
 
-type RegisterValue = {
-    email: string,
-    password: string
+type FormType = {
+    email:string, 
+    password:string, 
+    confirmPassword?:string
 }
-
 
 
 const Register = () => {
     const {signUpEmailPassword} = useSignUpEmailPassword()
+    const {register, handleSubmit, formState:{errors}, watch} = useForm<FormType>()
+    const router = useRouter()
 
-
-    const [value, setValue] = useState<RegisterValue>({
-        email : "",
-        password: ""
-    })
-
-    const handleChange : React.ChangeEventHandler<HTMLInputElement> = (e) => {
-      
-        const name = e.currentTarget.name;
-        const value = e.currentTarget.value;
-
-        setValue(v=> ({...v, [name] : value}))
-    }
-
-    const onSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e)=>{
-        
-        e.preventDefault()
+    const onSubmit = async ({email, password} : FormType)=>{
+ 
         try{
-            await signUpEmailPassword(value.email, value.password, {allowedRoles: ["user", "me"], defaultRole: "user"})
-
-        }catch(e){
+            const {accessToken} = await signUpEmailPassword(email, password, {allowedRoles: ["user", "me"], defaultRole: "user"})
+            fetch("/api/auth", {
+                method:"POST",
+                headers: {"Content-type" : "application/json"},                  
+                body:JSON.stringify({email, password, accessToken})
+            })
+            router.push("/")
+        }
+        catch(e){
             console.log(e)
         }
-        
     }
 
-    return ( <section>
-        <div>
-            <span>Register</span>
-            <form method="POST" onSubmit={onSubmit}>
-                <input type="email" name="email" onChange={handleChange}/>
-                <input type="password" name="password" onChange={handleChange} />
-                <button type="submit">Submit</button>
-            </form>
-        </div>       
-    </section> );
+    return ( 
+
+        <Form 
+        register={register} 
+        handleSubmit={handleSubmit} 
+        onSubmit={onSubmit} 
+        errors={errors} 
+        watch={watch} 
+        
+        header={"Register"}
+        description={"Enter an email to register to Kanban Board"}
+        confirmPassword 
+        
+        ></Form>
+
+ );
 }
  
 export default Register;
