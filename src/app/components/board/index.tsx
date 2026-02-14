@@ -1,9 +1,10 @@
 'use client'
 import {Card, CardHeader, CardContent, CardAction, CardDescription, CardTitle} from "@/ui/card";
-import {Badge} from "@/ui/badge"
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { BoardContext } from "@/app/context/BoardContext";
+
 const Board = ({children}: {children: React.ReactNode}) => {
+
 
     const context = useContext(BoardContext)
     if(!context)return
@@ -18,7 +19,7 @@ const Board = ({children}: {children: React.ReactNode}) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="flex h-full gap-3.5">
-                        {children} 
+                        { children} 
                 </CardContent>
             </Card>);
 }
