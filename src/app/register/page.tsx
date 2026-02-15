@@ -19,12 +19,7 @@ const Register = () => {
     const onSubmit = async ({email, password} : FormType)=>{
  
         try{
-            const {accessToken} = await signUpEmailPassword(email, password, {allowedRoles: ["user", "me"], defaultRole: "user"})
-            fetch("/api/auth", {
-                method:"POST",
-                headers: {"Content-type" : "application/json"},                  
-                body:JSON.stringify({email, password, accessToken})
-            })
+            await signUpEmailPassword(email, password, {allowedRoles: ["user", "me"], defaultRole: "user"})
             router.push("/")
         }
         catch(e){

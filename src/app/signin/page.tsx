@@ -18,15 +18,15 @@ const SignIn = () => {
 
     const onSubmit = async ({email, password} : FormType) =>{
 
-        const {accessToken} = await signInEmailPassword(email, password);
-        
-        await fetch("/api/auth", {
-            method:"POST",
-            headers: {'Content-type': 'application/json'},
-            body: JSON.stringify({email,password,accessToken})
-        })
+        try{
+            await signInEmailPassword(email, password);
+            router.push("/")
 
-        router.push("/")
+        }
+        catch(e){
+            console.log(e)
+        }
+       
 
     }
 
