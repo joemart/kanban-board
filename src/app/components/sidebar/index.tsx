@@ -141,7 +141,7 @@ const Sidebar = () => {
         <SidebarMain className=" h-full relative">
             <SidebarTrigger className=" absolute -right-9"/>
             
-            <SidebarContent >
+            <SidebarContent className="flex fle-col justify-between">
                 
                 <SidebarMenu className=" px-2" >
 
@@ -243,10 +243,11 @@ const Sidebar = () => {
                     
 
                 </SidebarMenu>
+                <SidebarFooter >
+                    username logout
+                </SidebarFooter>
             </SidebarContent>
-            <SidebarFooter>
-                username logout
-            </SidebarFooter>
+            
         </SidebarMain>
       
     );
