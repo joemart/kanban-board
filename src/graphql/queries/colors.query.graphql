@@ -1,6 +1,6 @@
-query GetAllColors {
-    colors {
-        id
-        name
-    }
-}
+# query GetAllColors {
+#     colors {
+#         id
+#         name
+#     }
+# }
