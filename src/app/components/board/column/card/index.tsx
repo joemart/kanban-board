@@ -44,11 +44,7 @@ const Card = ({children , id, position}:{children:React.ReactElement, id:string,
     return ( <ContextMenu>
         <ContextMenuTrigger>
           <CardMain >
-            <CardHeader>
-                
-                {/* Card name */}
-            </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col justify-between gap-6">
                 {children}
             </CardContent>
             

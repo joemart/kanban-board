@@ -58,7 +58,12 @@ const Column = ({name, removeColumn, columnId, cards} : {name: string, removeCol
                                         {(provided)=>{
                                             return <div ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
                                                         <Card id={card.id} position={index} >
-                                                            <>{card.title}</>
+                                                            <>
+                                                                <h2 className=" font-bold">{card.title}</h2>
+                                                                <span >
+                                                                    {card.description}
+                                                                </span>
+                                                            </>
                                                         </Card>
                                                     </div>
                                         }}
