@@ -1,6 +1,0 @@
-# query GetAllColors {
-#     colors {
-#         id
-#         name
-#     }
-# }
