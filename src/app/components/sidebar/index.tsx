@@ -14,7 +14,7 @@ import {useForm, Controller} from "react-hook-form"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
 import { useAddBoard, useEditBoard,useDeleteBoard } from "@/app/hooks/mutations/boards.graphql"
-import {useUserId} from "@nhost/nextjs"
+import {useUserId, useUserEmail} from "@nhost/nextjs"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -41,6 +41,7 @@ const Sidebar = () => {
     const boardContext = useContext(BoardContext)
     const {addBoard} = useAddBoard()
     const userId = useUserId()
+    const email = useUserEmail()
     const {deleteBoard} = useDeleteBoard()
     const {editBoard} = useEditBoard()
 
@@ -244,7 +245,7 @@ const Sidebar = () => {
 
                 </SidebarMenu>
                 <SidebarFooter >
-                    username logout
+                    Signed in as {email}
                 </SidebarFooter>
             </SidebarContent>
             
