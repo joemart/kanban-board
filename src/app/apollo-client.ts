@@ -1,44 +1,52 @@
 'use client'
-import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink, Observable, split } from '@apollo/client'
+import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink, Observable, split, NextLink } from '@apollo/client'
 import {GraphQLWsLink} from "@apollo/client/link/subscriptions"
 import { OperationTypeNode, Kind } from 'graphql';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from "graphql-ws";
 import { nhost } from '../lib/nhost';
 
+
 const authLink = new ApolloLink((operation, forward) => {
+
   return new Observable(observer => {
+    let subscription : {unsubscribe(): void}
     const setHeaders = async () => {
       try {
-        const token = await nhost.auth.getAccessToken();
-        const user = nhost.auth.getUser();
-        
+          const token = await nhost.auth.getAccessToken();
+          const user = await nhost.auth.getUser();
+          // const session = await nhost.auth.getSession();
+         
+
         operation.setContext(({ headers = {} }) => ({
           headers: {
             ...headers,
             Authorization: token ? `Bearer ${token}` : '',
             'x-hasura-user-id': user?.id || '',
-            'x-hasura-role': 'user',
+            'x-hasura-role': 'user'
           }
         }));
         
-        forward(operation).subscribe(observer);
+        subscription = forward(operation).subscribe({
+          next: (result)=>observer.next(result),
+          error: (error) => observer.error(error),
+          complete: () => observer.complete()
+        });
       } catch (error) {
         observer.error(error);
       }
     };
     
     setHeaders();
+    return () => subscription.unsubscribe()
   });
 });
 
- const httpLink = createHttpLink({
+const httpLink = createHttpLink({
     uri: nhost.graphql.httpUrl,
-
   });
 
-
-  const wsLink = new GraphQLWsLink(
+const wsLink = new GraphQLWsLink(
     createClient({
       url: nhost.graphql.wsUrl,
       
@@ -57,7 +65,7 @@ const authLink = new ApolloLink((operation, forward) => {
     })
   )
 
-  const splitLink = split(
+const splitLink = split(
     ({query})=>{
       const definition = getMainDefinition(query)
       return definition.kind === Kind.OPERATION_DEFINITION && 
