@@ -49,7 +49,17 @@ const httpLink = createHttpLink({
 const wsLink = new GraphQLWsLink(
     createClient({
       url: nhost.graphql.wsUrl,
-      
+      connectionParams: () =>{ 
+        const token = nhost.auth.getAccessToken()
+        const user = nhost.auth.getUser()
+
+        return({
+        headers: {
+          Authorization: token ? `Bearer ${token}` : '',
+          'x-hasura-user-id': user?.id || '',
+          'x-hasura-role': 'user'
+      }
+    })},
       retryAttempts: 5,
       shouldRetry: (err)=>{
         console.log("Web socket error: " , err)
