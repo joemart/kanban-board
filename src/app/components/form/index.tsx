@@ -42,7 +42,7 @@ watch: UseFormWatch<FormType>, confirmPassword: boolean, header:string, descript
                     <Input id={"confirmPassword"} type="password" {...register("confirmPassword", {
                         minLength : {message: "Must contain at least 3 characters", value:3},
                         maxLength: {message: "Maximum of 20 characters", value: 20},
-                        validate: (value, formValues) => !value || value === formValues.password || "Passwords don't match"
+                        validate: (value, formValues) => value === formValues.password || "Passwords don't match"
                     })} aria-invalid={errors.confirmPassword ? true : false}/>
                     {errors.confirmPassword && <FieldError errors={[errors.confirmPassword]}/>}</> : <></>}                      
                 </form>
