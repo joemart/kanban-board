@@ -16,7 +16,7 @@ import { BoardContext } from "./context/BoardContext";
 import { useUpdateColumnsOrder, useAddColumn, useDeleteColumnByID, useUpdateColumn } from "./hooks/mutations/columns.graphql";
 import AddColumnButton from "./components/board/addColumn";
 // Card
-import { useAddCard, useEditCard, useRemoveCard, useUpdateCardOrder, useUpdateColumnCardOrder } from "./hooks/mutations/cards.graphql";
+import { useAddCard, useEditCard, useRemoveCard, useUpdateCardOrder } from "./hooks/mutations/cards.graphql";
 
 export default function Kanban() {
 
@@ -160,7 +160,7 @@ export default function Kanban() {
     }
 
     // column: edit card
-    const editOneCard = async(id:string, title:string, description:string, position:number, userId:string)=>{
+    const editOneCard = async(id:string, title:string, description:string)=>{
         
         editCard({
             variables: {
@@ -179,7 +179,7 @@ export default function Kanban() {
     }
 
     const onDragEnd = (result: DropResult) =>{
-        const {destination, source, draggableId, type} = result
+        const {destination, source, type} = result
 
         if(!columns) return
         if(!destination) return
@@ -310,7 +310,7 @@ export default function Kanban() {
         }
     }
 
-  if (loading) {
+  if (loading && auth.isAuthenticated) {
     return <div>Loading columns...</div>;
   }
 
