@@ -33,7 +33,8 @@ watch: UseFormWatch<FormType>, confirmPassword: boolean, header:string, descript
                     <Label htmlFor="password">Password </Label>
                     <Input id={"password"} type="password" {...register("password", {
                         minLength : {message: "Must contain at least 3 characters", value:3},
-                        maxLength: {message: "Maximum of 20 characters", value: 20}
+                        maxLength: {message: "Maximum of 20 characters", value: 20},
+                        validate: (value) => { if(value === '') return 'Must not be empty' }
                     })} aria-invalid={errors.password ? true : false}/>
                     {errors.password && <FieldError errors={[errors.password]}/>}
 
@@ -41,7 +42,9 @@ watch: UseFormWatch<FormType>, confirmPassword: boolean, header:string, descript
                     <Input id={"confirmPassword"} type="password" {...register("confirmPassword", {
                         minLength : {message: "Must contain at least 3 characters", value:3},
                         maxLength: {message: "Maximum of 20 characters", value: 20},
-                        validate: (value, formValues) => value === formValues.password || "Passwords don't match"
+                        validate: (value, formValues) => {
+                            console.log(value)
+                            return value === formValues.password || "Passwords don't match"}
                     })} aria-invalid={errors.confirmPassword ? true : false}/>
                     {errors.confirmPassword && <FieldError errors={[errors.confirmPassword]}/>}</> : <></>}                      
                 </form>
