@@ -1,6 +1,5 @@
-import { useSignUpEmailPassword } from "@nhost/nextjs";
-import { DOMAttributes, useState } from "react";
-import {useForm, UseFormWatch} from "react-hook-form"
+
+import {UseFormWatch} from "react-hook-form"
 import { Input } from "@/ui/input";
 import { Card, CardContent, CardHeader, CardDescription, CardFooter, CardTitle } from "@/ui/card";
 import { Button } from "@/ui/button";
@@ -12,7 +11,7 @@ import { FieldError } from "@/ui/field";
 
 type FormType = {email:string, password:string, confirmPassword?:string}
 
-const Form = ({register, handleSubmit, errors, onSubmit, watch, confirmPassword, header, description} : {register: UseFormRegister<FormType>,
+const Form = ({register, handleSubmit, errors, onSubmit, confirmPassword, header, description} : {register: UseFormRegister<FormType>,
 handleSubmit: UseFormHandleSubmit<FormType>, errors: FieldErrors<FormType>, onSubmit: (data:FormType)=>void,
 watch: UseFormWatch<FormType>, confirmPassword: boolean, header:string, description:string}) => {
 

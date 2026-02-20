@@ -1,5 +1,5 @@
 'use client'
-import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink, Observable, split, NextLink } from '@apollo/client'
+import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink, Observable, split } from '@apollo/client'
 import {GraphQLWsLink} from "@apollo/client/link/subscriptions"
 import { OperationTypeNode, Kind } from 'graphql';
 import { getMainDefinition } from '@apollo/client/utilities';
